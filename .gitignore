@@ -1,0 +1,72 @@
+# --- Secrets (никогда не коммитить) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa
+*_token*
+*_secret*
+
+# --- C++ / CMake ---
+build/
+build-*/
+cmake-build-*/
+out/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+*.cmake
+!CMakeLists.txt
+compile_commands.json
+Testing/
+**/*.o
+**/*.a
+**/*.so
+**/*.dylib
+*.obj
+*.pch
+*.pdb
+*.ilk
+*.exp
+.vs/
+*.user
+*.userprefs
+
+# --- Conan / vcpkg ---
+.conan/
+vcpkg_installed/
+
+# --- IDE / OS ---
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- Logs / debug ---
+*.log
+.cursor/debug*.log
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.Python
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# --- Coverage / test artifacts ---
+coverage/
+*.gcov
+*.gcda
+*.gcno
+
+# --- Misc ---
+.cache/
+*.tmp
+core
+core.*

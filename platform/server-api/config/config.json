@@ -1,0 +1,28 @@
+{
+  "listeners": [
+    {
+      "address": "0.0.0.0",
+      "port": 8080,
+      "https": false
+    }
+  ],
+  "app": {
+    "number_of_threads": 4,
+    "enable_session": false
+  },
+  "db_clients": [
+    {
+      "name": "default",
+      "rdbms": "postgresql",
+      "host": "postgres",
+      "port": 5432,
+      "dbname": "coordinator_db",
+      "user": "coordinator",
+      "passwd": "coordinator",
+      "is_fast": false,
+      "client_encoding": "utf8",
+      "connection_number": 8,
+      "timeout": -1
+    }
+  ]
+}

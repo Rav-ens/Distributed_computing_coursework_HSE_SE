@@ -1,0 +1,62 @@
+# =============================================================================
+# Один хост: Postgres + coordinator + worker (удобно для локальной проверки).
+# В бою: deploy/server/docker-compose.server.yml на машине API и
+# deploy/worker/docker-compose.worker.yml на каждой машине воркеров с
+# COORDINATOR_URL=http://<публичный_IP_или_домен_API>:8080
+# -----------------------------------------------------------------------------
+# 1) Сервис coordinator: опубликуйте порт 8080 (или TLS через reverse-proxy).
+# 2) По умолчанию worker ходит на учебный API http://194.87.98.244:8080 (как отдельный воркер).
+#    Полностью офлайн на одной машине без доступа к 194 — в .env задайте COORDINATOR_URL=http://coordinator:8080.
+# 3) Postgres обычно не торчит наружу; worker к БД не ходит, только к HTTP API.
+# =============================================================================
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-coordinator_db}
+      POSTGRES_USER: ${POSTGRES_USER:-coordinator}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-coordinator}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coordinator -d coordinator_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - ../../platform/server-api/db/migrations:/docker-entrypoint-initdb.d
+
+  coordinator:
+    build:
+      context: ../../platform/server-api
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_CLIENT_NAME: default
+    ports:
+      # CHANGEME_DEPLOY: на VPS оставьте 8080 или проброс на 80/443 через nginx/caddy
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # Исполнитель: отдельный образ (../../platform/worker-node/Dockerfile), нужен docker.sock.
+  # Несколько реплик на одном хосте:
+  #   docker compose -p coordinator_coursework --profile with-workers up -d --scale worker=3
+  worker:
+    profiles:
+      - with-workers
+    build:
+      context: ../../platform/worker-node
+      dockerfile: Dockerfile
+    environment:
+      COORDINATOR_URL: ${COORDINATOR_URL:-http://194.87.98.244:8080}
+      DOCKER_MAP_CMD: ${DOCKER_MAP_CMD:-map}
+      HEARTBEAT_SEC: ${HEARTBEAT_SEC:-5}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      coordinator:
+        condition: service_started

@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-coordinator_db}
+      POSTGRES_USER: ${POSTGRES_USER:-coordinator}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-coordinator}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coordinator -d coordinator_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - ../../platform/server-api/db/migrations:/docker-entrypoint-initdb.d
+
+  coordinator:
+    build:
+      context: ../../platform/server-api
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_CLIENT_NAME: default
+      # Опционально: ограничить образы (см. README). Пусто = разрешены любые ссылки на registry.
+      # TRUSTED_REGISTRY_PREFIXES: "docker.io/,ghcr.io/"
+      # ENFORCE_TRUSTED_REGISTRY_PREFIXES: "1"
+      # REGISTRY_PULL_TIMEOUT_SEC: "300"
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

@@ -1,0 +1,12 @@
+services:
+  worker:
+    build:
+      context: ../../platform/worker-node
+      dockerfile: Dockerfile
+    environment:
+      # URL API (см. deploy/worker/.env.example). По умолчанию — локальный coordinator.
+      COORDINATOR_URL: ${COORDINATOR_URL:-http://194.87.98.244:8080}
+      DOCKER_MAP_CMD: ${DOCKER_MAP_CMD:-map}
+      HEARTBEAT_SEC: ${HEARTBEAT_SEC:-5}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
